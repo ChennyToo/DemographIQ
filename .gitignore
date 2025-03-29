@@ -1,8 +1,10 @@
-# Compiled class file
+# Compiled class files
 *.class
 
-# Log file
+# Log files
 *.log
+*.out
+*.err
 
 # BlueJ files
 *.ctxt
@@ -19,6 +21,29 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
+
+# Maven target directory
+/target/
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+
+# VS Code files
+.vscode/
+
+# Eclipse files
+.project
+.classpath
+.settings/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Spring Boot specific
+*.pid
