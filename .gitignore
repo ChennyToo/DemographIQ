@@ -26,7 +26,7 @@ hs_err_pid*
 replay_pid*
 
 # Maven target directory
-/target/
+/demographiq-server/target/
 
 # IntelliJ IDEA files
 .idea/
