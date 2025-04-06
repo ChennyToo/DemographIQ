@@ -6,10 +6,14 @@ import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.BasemapStyle;
+import io.github.cdimascio.dotenv.Dotenv;
 
 public class ArcGISSDKTest {
     public static void main(String[] args) {
         try {
+            Dotenv dotenv = Dotenv.load();
+            String apiKey = dotenv.get("ARCGis_KEY");
+            System.out.println("Loaded API Key from .env: " + apiKey);
             String repoRoot = System.getProperty("user.dir");
             String arcgisPath = Paths.get(repoRoot, "demographiq-server", ".arcgis", "200.6.0").toString();
             ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
