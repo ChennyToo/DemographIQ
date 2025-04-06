@@ -1,5 +1,6 @@
 package com.demographiq.service;
 
+import java.nio.file.Paths;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
@@ -9,9 +10,9 @@ import com.esri.arcgisruntime.mapping.BasemapStyle;
 public class ArcGISSDKTest {
     public static void main(String[] args) {
         try {
-            System.out.println("Main start");
-            ArcGISRuntimeEnvironment.setInstallDirectory(
-                System.getProperty("user.home") + "\\demographiq\\demographiq-server\\.arcgis\\200.6.0");
+            String repoRoot = System.getProperty("user.dir");
+            String arcgisPath = Paths.get(repoRoot, "demographiq-server", ".arcgis", "200.6.0").toString();
+            ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
             // Initialize ArcGIS Runtime with your API key
             ArcGISRuntimeEnvironment.setApiKey("YOUR_API_KEY");
             System.out.println("ArcGIS Runtime initialized successfully");
