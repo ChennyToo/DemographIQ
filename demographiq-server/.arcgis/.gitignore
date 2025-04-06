@@ -1,0 +1,5 @@
+# Ignore everything except placeholder.txt
+*
+!.gitignore
+!placeholder.txt
+!200.6.0/placeholder.txt
