@@ -47,3 +47,6 @@ Thumbs.db
 
 # Spring Boot specific
 *.pid
+
+# Sensitive Information
+*.env
