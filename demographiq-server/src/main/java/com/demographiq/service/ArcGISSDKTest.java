@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
@@ -34,14 +36,20 @@ public class ArcGISSDKTest {
 
 
         private static void testApiKey(String apiKey) throws Exception {
-        // Construct URL to validate the API key
         double latitude = 37.7749; // Example latitude (San Francisco)
         double longitude = -122.4194; // Example longitude (San Francisco)
+
+        // Create the JSON string
+        String studyAreasJson = "[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]";
+
+        // URL encode the JSON parameter
+        String encodedStudyAreas = URLEncoder.encode(studyAreasJson, StandardCharsets.UTF_8.toString());
+
         String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
-        + "?studyAreas=[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]"
-        + "&f=json"
-        + "&token=" + apiKey;       
-        
+            + "?studyAreas=" + encodedStudyAreas
+            + "&f=json"
+            + "&token=" + apiKey;  
+
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
