@@ -57,9 +57,11 @@ public class ArcGISSDKTest {
 
     // URL encode the JSON parameter
     String encodedStudyAreas = URLEncoder.encode(studyAreasJson, StandardCharsets.UTF_8.toString());
+    String encodedVariable = URLEncoder.encode("[\"" + "populationtotals.POPDENS_CY" + "\"]", "UTF-8");
 
     String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
         + "?studyAreas=" + encodedStudyAreas
+        + "&analysisVariables=" + encodedVariable
         + "&f=json"
         + "&token=" + apiKey;  
 
@@ -84,9 +86,9 @@ public class ArcGISSDKTest {
         
         // Check if response indicates a valid key
         if (response.toString().contains("error")) {
-            System.out.println("API key validation FAILED! Key may be invalid or expired.");
+            System.out.println("API response failure");
         } else {
-            System.out.println("API key validation SUCCESSFUL! Key is valid.");
+            System.out.println("API response successful");
         }
     }
 }
