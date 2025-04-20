@@ -15,79 +15,79 @@ import redis.clients.jedis.UnifiedJedis;
 
 public class ArcGISSDKTest {
     public static void main(String[] args) {
-        UnifiedJedis redis = RedisApiThrottler.getConnection();
-        String serverGlobalCallsCount = "globalCalls";
-        long uses = redis.incr(serverGlobalCallsCount);
-        System.out.println("API calls made so far by server past minute " + uses);
-        if (uses == 1) {
-            redis.expire(serverGlobalCallsCount, 60);
-        }
-        if (uses > 5) {
-            System.out.println("API call limit exceeded for server");
-            return;
-        }
-
+        boolean canPerformApiCall = RedisApiThrottler.registerApiCall("admin");
+        String apiKey = getApiKey();
+        setupArcGisRuntime(apiKey);
         try {
-            Dotenv dotenv = Dotenv.load();
-            String apiKey = dotenv.get("ARCGis_KEY");
-            System.out.println("Loaded API Key from .env: " + apiKey);
-            String repoRoot = System.getProperty("user.dir");
-            String arcgisPath = Paths.get(repoRoot, "demographiq-server", ".arcgis", "200.6.0").toString();
-            ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
-
-            // Initialize ArcGIS Runtime with your API key
-            ArcGISRuntimeEnvironment.setApiKey(apiKey);
-            System.out.println("ArcGIS Runtime initialized successfully");
-            
-            // Test the API key with a simple request to get info about the key
-            testApiKey(apiKey);
+            if (canPerformApiCall) {
+                System.out.println("API call allowed, proceeding with test...");
+                testApiKey(apiKey);
+            } else {
+                System.out.println("API call limit exceeded. Cannot perform API call.");
+            }
         } catch (Exception e) {
             System.err.println("Error testing ArcGIS SDK: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    private static void setupArcGisRuntime(String apiKey) {
+        String repoRoot = System.getProperty("user.dir");
+        String arcgisPath = Paths.get(repoRoot, "demographiq-server", ".arcgis", "200.6.0").toString();
+        ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
+        // Initialize ArcGIS Runtime with your API key
+        ArcGISRuntimeEnvironment.setApiKey(apiKey);
+        System.out.println("ArcGIS Runtime initialized successfully");
+    }
 
-        private static void testApiKey(String apiKey) throws Exception {
-        double latitude = 37.7749; // Example latitude (San Francisco)
-        double longitude = -122.4194; // Example longitude (San Francisco)
+    public static String getApiKey() {
+        Dotenv dotenv = Dotenv.load();
+        String apiKey = dotenv.get("ARCGis_KEY");
+        System.out.println("Loaded API Key from .env: " + apiKey);
+        return apiKey;
+    }
 
-        // Create the JSON string
-        String studyAreasJson = "[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]";
 
-        // URL encode the JSON parameter
-        String encodedStudyAreas = URLEncoder.encode(studyAreasJson, StandardCharsets.UTF_8.toString());
+    private static void testApiKey(String apiKey) throws Exception {
+    double latitude = 37.7749; // Example latitude (San Francisco)
+    double longitude = -122.4194; // Example longitude (San Francisco)
 
-        String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
-            + "?studyAreas=" + encodedStudyAreas
-            + "&f=json"
-            + "&token=" + apiKey;  
+    // Create the JSON string
+    String studyAreasJson = "[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]";
 
-        URL url = new URL(urlString);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
+    // URL encode the JSON parameter
+    String encodedStudyAreas = URLEncoder.encode(studyAreasJson, StandardCharsets.UTF_8.toString());
+
+    String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
+        + "?studyAreas=" + encodedStudyAreas
+        + "&f=json"
+        + "&token=" + apiKey;  
+
+    URL url = new URL(urlString);
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestMethod("GET");
+    
+    int responseCode = conn.getResponseCode();
+    System.out.println("API Key Validation Response Code: " + responseCode);
+    
+    try (BufferedReader in = new BufferedReader(new InputStreamReader(
+            responseCode >= 400 ? conn.getErrorStream() : conn.getInputStream()))) {
+        String inputLine;
+        StringBuilder response = new StringBuilder();
         
-        int responseCode = conn.getResponseCode();
-        System.out.println("API Key Validation Response Code: " + responseCode);
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
         
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(
-                responseCode >= 400 ? conn.getErrorStream() : conn.getInputStream()))) {
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-            
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            
-            System.out.println("Response:");
-            System.out.println(response.toString());
-            
-            // Check if response indicates a valid key
-            if (response.toString().contains("error")) {
-                System.out.println("API key validation FAILED! Key may be invalid or expired.");
-            } else {
-                System.out.println("API key validation SUCCESSFUL! Key is valid.");
-            }
+        System.out.println("Response:");
+        System.out.println(response.toString());
+        
+        // Check if response indicates a valid key
+        if (response.toString().contains("error")) {
+            System.out.println("API key validation FAILED! Key may be invalid or expired.");
+        } else {
+            System.out.println("API key validation SUCCESSFUL! Key is valid.");
         }
     }
+}
 }
