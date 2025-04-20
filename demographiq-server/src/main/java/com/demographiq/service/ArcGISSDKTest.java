@@ -11,9 +11,22 @@ import java.nio.file.Paths;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import redis.clients.jedis.UnifiedJedis;
 
 public class ArcGISSDKTest {
     public static void main(String[] args) {
+        UnifiedJedis redis = RedisApiThrottler.getConnection();
+        String serverGlobalCallsCount = "globalCalls";
+        long uses = redis.incr(serverGlobalCallsCount);
+        System.out.println("API calls made so far by server past minute " + uses);
+        if (uses == 1) {
+            redis.expire(serverGlobalCallsCount, 60);
+        }
+        if (uses > 5) {
+            System.out.println("API call limit exceeded for server");
+            return;
+        }
+
         try {
             Dotenv dotenv = Dotenv.load();
             String apiKey = dotenv.get("ARCGis_KEY");
