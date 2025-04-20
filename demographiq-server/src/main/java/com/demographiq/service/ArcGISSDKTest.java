@@ -1,11 +1,13 @@
 package com.demographiq.service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Paths;
+
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.SpatialReferences;
-import com.esri.arcgisruntime.mapping.ArcGISMap;
-import com.esri.arcgisruntime.mapping.BasemapStyle;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class ArcGISSDKTest {
@@ -17,22 +19,54 @@ public class ArcGISSDKTest {
             String repoRoot = System.getProperty("user.dir");
             String arcgisPath = Paths.get(repoRoot, "demographiq-server", ".arcgis", "200.6.0").toString();
             ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
+
             // Initialize ArcGIS Runtime with your API key
-            ArcGISRuntimeEnvironment.setApiKey("YOUR_API_KEY");
+            ArcGISRuntimeEnvironment.setApiKey(apiKey);
             System.out.println("ArcGIS Runtime initialized successfully");
             
-            // Create a map (without displaying it)
-            ArcGISMap map = new ArcGISMap(BasemapStyle.ARCGIS_TOPOGRAPHIC);
-            System.out.println("ArcGIS Map created successfully with basemap: " + map.getBasemap().getName());
-            
-            // Try a basic geometry operation
-            Point point = new Point(-118.805, 34.027, SpatialReferences.getWgs84());
-            System.out.println("Created point at: " + point.getX() + ", " + point.getY());
-            
-            System.out.println("ArcGIS SDK is properly installed and functioning!");
+            // Test the API key with a simple request to get info about the key
+            testApiKey(apiKey);
         } catch (Exception e) {
             System.err.println("Error testing ArcGIS SDK: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+
+        private static void testApiKey(String apiKey) throws Exception {
+        // Construct URL to validate the API key
+        double latitude = 37.7749; // Example latitude (San Francisco)
+        double longitude = -122.4194; // Example longitude (San Francisco)
+        String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
+        + "?studyAreas=[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]"
+        + "&f=json"
+        + "&token=" + apiKey;       
+        
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        
+        int responseCode = conn.getResponseCode();
+        System.out.println("API Key Validation Response Code: " + responseCode);
+        
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(
+                responseCode >= 400 ? conn.getErrorStream() : conn.getInputStream()))) {
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            
+            System.out.println("Response:");
+            System.out.println(response.toString());
+            
+            // Check if response indicates a valid key
+            if (response.toString().contains("error")) {
+                System.out.println("API key validation FAILED! Key may be invalid or expired.");
+            } else {
+                System.out.println("API key validation SUCCESSFUL! Key is valid.");
+            }
         }
     }
 }
