@@ -57,7 +57,7 @@ public class ArcGISSDKTest {
 
     // URL encode the JSON parameter
     String encodedStudyAreas = URLEncoder.encode(studyAreasJson, StandardCharsets.UTF_8.toString());
-    String encodedVariable = URLEncoder.encode("[\"" + "populationtotals.POPDENS_CY" + "\"]", "UTF-8");
+    String encodedVariable = URLEncoder.encode("[\"" + "POPDENS_CY" + "\"]", "UTF-8");
 
     String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
         + "?studyAreas=" + encodedStudyAreas
@@ -82,9 +82,8 @@ public class ArcGISSDKTest {
         }
         
         System.out.println("Response:");
-        System.out.println(response.toString());
+        JSONParser.extractAttributeData(response.toString());
         
-        // Check if response indicates a valid key
         if (response.toString().contains("error")) {
             System.out.println("API response failure");
         } else {
