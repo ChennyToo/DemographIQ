@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.demographiq.model.EnrichmentRequest;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 
 import jakarta.annotation.PostConstruct;
@@ -45,7 +46,11 @@ public class ArcGISService {
      * @throws IllegalArgumentException if latitude or longitude are outside valid ranges
      * @throws RuntimeException if API calls are throttled or if there's an API error
      */
-    public String enrichLocation(double latitude, double longitude) {
+    public String enrichLocation(EnrichmentRequest request) {
+        double latitude = request.getLatitude();
+        double longitude = request.getLongitude();
+        String userId = request.getUserId();
+        String dataVariable = request.getDataVariable();
         // Validate latitude range: -90 to +90 degrees
         if (latitude < -90 || latitude > 90) {
             throw new IllegalArgumentException("Latitude must be between -90 and +90 degrees");
@@ -57,25 +62,25 @@ public class ArcGISService {
         }
         
         // Check if API call is allowed
-        boolean canPerformApiCall = redisApiThrottler.registerApiCall("arcgis");
+        boolean canPerformApiCall = redisApiThrottler.registerApiCall(userId);
         if (!canPerformApiCall) {
             throw new RuntimeException("API call limit exceeded. Please try again later.");
         }
         
         try {
-            return callArcGisApi(latitude, longitude);
+            return callArcGisApi(latitude, longitude, dataVariable);
         } catch (Exception e) {
             throw new RuntimeException("Error calling ArcGIS API: " + e.getMessage(), e);
         }
     }
     
-    private String callArcGisApi(double latitude, double longitude) throws Exception {
+    private String callArcGisApi(double latitude, double longitude, String dataVariable) throws Exception {
         // Create the JSON string for study areas
         String studyAreasJson = "[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]";
         
         // URL encode the JSON parameter
         String encodedStudyAreas = URLEncoder.encode(studyAreasJson, StandardCharsets.UTF_8.toString());
-        String encodedVariable = URLEncoder.encode("[\"" + "POPDENS_CY" + "\"]", "UTF-8");
+        String encodedVariable = URLEncoder.encode("[\"" + dataVariable + "\"]", "UTF-8");
         
         String urlString = "https://geoenrich.arcgis.com/arcgis/rest/services/World/geoenrichmentserver/GeoEnrichment/enrich"
             + "?studyAreas=" + encodedStudyAreas
@@ -106,7 +111,7 @@ public class ArcGISService {
             }
             
             // Extract and process the data using JsonParser
-            return jsonParser.extractAttributeData(responseStr) + "";
+            return jsonParser.extractAttributeData(responseStr, dataVariable) + "";
         }
     }
 
