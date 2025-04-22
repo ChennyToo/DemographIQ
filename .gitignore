@@ -50,3 +50,4 @@ Thumbs.db
 
 # Sensitive Information
 *.env
+/demographiq-server/src/main/resources/application.properties
