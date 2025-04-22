@@ -11,11 +11,11 @@ import java.nio.file.Paths;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import redis.clients.jedis.UnifiedJedis;
 
 public class ArcGISSDKTest {
     public static void main(String[] args) {
-        boolean canPerformApiCall = RedisApiThrottler.registerApiCall("admin");
+        // boolean canPerformApiCall = RedisApiThrottler.registerApiCall("admin");
+        boolean canPerformApiCall = true;
         String apiKey = getApiKey();
         setupArcGisRuntime(apiKey);
         try {

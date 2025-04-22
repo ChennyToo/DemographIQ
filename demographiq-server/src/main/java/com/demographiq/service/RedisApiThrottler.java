@@ -1,24 +1,28 @@
 package com.demographiq.service;
 
-import redis.clients.jedis.UnifiedJedis;
-import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import redis.clients.jedis.DefaultJedisClientConfig;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisClientConfig;
+import redis.clients.jedis.UnifiedJedis;
 
+@Service
 public class RedisApiThrottler {
-    private static UnifiedJedis jedis;
-    private static String serverGlobalCallsKey = "globalCalls";
-    private static final int MAX_USER_CALLS_MINUTE = 3;
-    private static final int MAX_SERVER_CALLS_MINUTE = 5;
+    private UnifiedJedis jedis;
+    private String serverGlobalCallsKey = "globalCalls";
+    private final int MAX_USER_CALLS_MINUTE = 3;
+    private final int MAX_SERVER_CALLS_MINUTE = 5;
 
-    public static void getConnection() {
+    @Value("${Redis_PASSWORD}")
+    private String redisPassword;
+
+    public void getConnection() {
         if (jedis == null) {
-            Dotenv dotenv = Dotenv.load();
-            String password = dotenv.get("Redis_PASSWORD");
             JedisClientConfig config = DefaultJedisClientConfig.builder()
                     .user("default")
-                    .password(password)
+                    .password(redisPassword)
                     .build();
 
             jedis = new UnifiedJedis(
@@ -28,8 +32,8 @@ public class RedisApiThrottler {
         }
     }
 
-    public static boolean registerApiCall(String userKey) {
-        getConnection();
+    public boolean registerApiCall(String userKey) {
+        this.getConnection();
         boolean userResponse = registerUserApiCall(userKey);
         boolean serverResponse = registerServerApiCall();
         if (userResponse == false || serverResponse == false) {
@@ -39,7 +43,7 @@ public class RedisApiThrottler {
         }
     }
 
-    private static boolean registerUserApiCall(String userKey) {
+    private boolean registerUserApiCall(String userKey) {
         long userUsageCount = jedis.incr(userKey);
         System.out.println("API calls made so far by user " + userKey + " past minute " + userUsageCount);
         if (userUsageCount == 1) {
@@ -53,7 +57,7 @@ public class RedisApiThrottler {
         }
     }
 
-    private static boolean registerServerApiCall() {
+    private boolean registerServerApiCall() {
         long globalUsageCount = jedis.incr(serverGlobalCallsKey);
         System.out.println("API calls made so far by server past minute " + globalUsageCount);
         if (globalUsageCount == 1) {
