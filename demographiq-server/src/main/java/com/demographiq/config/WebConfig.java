@@ -1,4 +1,4 @@
-package com.demographiq;
+package com.demographiq.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;

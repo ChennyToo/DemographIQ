@@ -13,6 +13,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,14 +28,19 @@ public class DataVariableMongoDAO implements DataVariableDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DataVariableMongoDAO.class);
 
-    @Value("${MongoDB_USER}")
-    private String mongoDbUsername;
+    private final MongoClient mongoClient;
 
-    @Value("${MongoDB_PASSWORD}")
-    private String mongoDbPassword;
+    private final ExtremeRecordConverter converter;
 
-    private final ExtremeRecordConverter converter = new ExtremeRecordConverter();
+    //Dependency injection of MongoClient and ExtremeRecordConverter from MongoConfig.java
+    @Autowired
+    public DataVariableMongoDAO(MongoClient mongoClient, ExtremeRecordConverter converter) {
+        this.mongoClient = mongoClient;
+        this.converter = converter;
+    }
 
+
+    
     public static void main(String[] args) {
         String uri = "mongodb+srv://user:pass@demographiq.cbhbhvx.mongodb.net/?retryWrites=true&w=majority&appName=Demographiq";
        try (MongoClient mongoClient = MongoClients.create(uri)) {
@@ -108,18 +114,6 @@ public class DataVariableMongoDAO implements DataVariableDAO {
     }
 
 
-    private MongoDatabase getMongoDatabase() {
-        String connectionUri = String.format(
-            "mongodb+srv://%s:%s@demographiq.cbhbhvx.mongodb.net/?retryWrites=true&w=majority&appName=Demographiq",
-            mongoDbUsername, mongoDbPassword
-        );
-        // In a real application, you'd typically manage the MongoClient lifecycle
-        // more robustly, perhaps as a singleton or managed by a framework.
-        MongoClient mongoClient = MongoClients.create(connectionUri);
-        MongoDatabase database = mongoClient.getDatabase("enrichment_data");
-        return database; // Remember to close the MongoClient when the application shuts down
-    }
-
 
 /**
  * Retrieves the extreme value (highest or lowest) for a specific country and metric
@@ -132,7 +126,7 @@ public class DataVariableMongoDAO implements DataVariableDAO {
 @Override
 public Optional<ExtremeRecord> getExtremeValue(String sourceCountry, String variableId, boolean isHigh) {
     // Get the MongoDB database connection
-    MongoDatabase database = getMongoDatabase();
+    MongoDatabase database = mongoClient.getDatabase("enrichment_data");
 
     // Determine which collection to query based on whether we want record highs or lows
     String collectionName = isHigh ? "record_highs" : "record_lows";

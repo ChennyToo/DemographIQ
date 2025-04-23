@@ -1,39 +1,22 @@
 package com.demographiq.service;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import redis.clients.jedis.DefaultJedisClientConfig;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisClientConfig;
-import redis.clients.jedis.UnifiedJedis;
+import redis.clients.jedis.JedisPooled;
 
 @Service
 public class RedisApiThrottler {
-    private UnifiedJedis jedis;
+    private final JedisPooled jedis;
     private String serverGlobalCallsKey = "globalCalls";
     private final int MAX_USER_CALLS_MINUTE = 3;
     private final int MAX_SERVER_CALLS_MINUTE = 5;
 
-    @Value("${Redis_PASSWORD}")
-    private String redisPassword;
-
-    public void getConnection() {
-        if (jedis == null) {
-            JedisClientConfig config = DefaultJedisClientConfig.builder()
-                    .user("default")
-                    .password(redisPassword)
-                    .build();
-
-            jedis = new UnifiedJedis(
-                new HostAndPort("redis-10783.c90.us-east-1-3.ec2.redns.redis-cloud.com", 10783),
-                config
-            );
-        }
+    @Autowired //Dependency inject jedisPooled from RedisConfig.java
+    public RedisApiThrottler(JedisPooled jedisPooled) {
+        this.jedis = jedisPooled;
     }
 
     public boolean registerApiCall(String userKey) {
-        this.getConnection();
         boolean userResponse = registerUserApiCall(userKey);
         boolean serverResponse = registerServerApiCall();
         if (userResponse == false || serverResponse == false) {
