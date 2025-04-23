@@ -9,25 +9,31 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.demographiq.model.EnrichmentRequest;
+import com.demographiq.persistence.DataVariableMongoDAO;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 
 import jakarta.annotation.PostConstruct;
 
 @Service
 public class ArcGISService {
+    private static final Logger logger = LoggerFactory.getLogger(ArcGISService.class);
     private final RedisApiThrottler redisApiThrottler;
+    private final DataVariableMongoDAO dataVariableMongoDAO;
 
     @Value("${ARCGis_KEY}")
     private String apiKey;
 
     @Autowired
-    public ArcGISService(RedisApiThrottler redisApiThrottler) {
+    public ArcGISService(RedisApiThrottler redisApiThrottler, DataVariableMongoDAO dataVariableMongoDAO) {
         this.redisApiThrottler = redisApiThrottler;
+        this.dataVariableMongoDAO = dataVariableMongoDAO;
     }
 
     @PostConstruct
@@ -109,7 +115,10 @@ public class ArcGISService {
             }
             
             // Extract and process the data using JsonParser
-            return JSONParser.extractAttributeData(responseStr, dataVariable) + "";
+            // return JSONParser.extractAttributeData(responseStr, dataVariable) + "";
+            logger.info("checkpoint 1");
+            dataVariableMongoDAO.getExtremeValue("US", "POPDENS_CY", true);
+            return "hi";
         }
     }
 
