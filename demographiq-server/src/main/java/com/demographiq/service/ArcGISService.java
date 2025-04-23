@@ -3,6 +3,7 @@ package com.demographiq.service;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -19,17 +20,14 @@ import jakarta.annotation.PostConstruct;
 
 @Service
 public class ArcGISService {
-
     private final RedisApiThrottler redisApiThrottler;
-    private final JSONParser jsonParser;
 
     @Value("${ARCGis_KEY}")
     private String apiKey;
 
     @Autowired
-    public ArcGISService(RedisApiThrottler redisApiThrottler, JSONParser jsonParser) {
+    public ArcGISService(RedisApiThrottler redisApiThrottler) {
         this.redisApiThrottler = redisApiThrottler;
-        this.jsonParser = jsonParser;
     }
 
     @PostConstruct
@@ -88,7 +86,7 @@ public class ArcGISService {
             + "&f=json"
             + "&token=" + apiKey;
             
-        URL url = new URL(urlString);
+        URL url = URI.create(urlString).toURL();
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         
@@ -111,7 +109,7 @@ public class ArcGISService {
             }
             
             // Extract and process the data using JsonParser
-            return jsonParser.extractAttributeData(responseStr, dataVariable) + "";
+            return JSONParser.extractAttributeData(responseStr, dataVariable) + "";
         }
     }
 

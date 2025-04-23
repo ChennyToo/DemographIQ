@@ -1,28 +1,41 @@
 package com.demographiq.persistence;
 
-import static com.mongodb.client.model.Filters.eq;
-import org.bson.Document;
+import java.util.List;
+import java.util.Optional;
+
+import com.demographiq.model.ExtremeRecord;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
 
-public class DataVariableMongoDAO {
+public class DataVariableMongoDAO implements DataVariableDAO {
 
     public static void main(String[] args) {
-        // Replace the placeholder with your MongoDB deployment's connection string
         String uri = "mongodb+srv://username:password@demographiq.cbhbhvx.mongodb.net/?retryWrites=true&w=majority&appName=Demographiq";
-        try (MongoClient mongoClient = MongoClients.create(uri)) {
-            MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-            MongoCollection<Document> collection = database.getCollection("movies");
+        MongoClient mongoClient = MongoClients.create(uri);
 
-            // Retrieve all documents in the collection
-            try (MongoCursor<Document> cursor = collection.find().iterator()) {
-                while (cursor.hasNext()) {
-                    System.out.println(cursor.next().toJson());
-                }
-            }
-        }
+    }
+
+    @Override
+    public Optional<ExtremeRecord> getExtremeValue(String countryName, String variableId, boolean isHigh) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getExtremeValue'");
+    }
+
+    @Override
+    public boolean updateIfMoreExtreme(ExtremeRecord record, boolean isHigh) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'updateIfMoreExtreme'");
+    }
+
+    @Override
+    public List<ExtremeRecord> getAllExtremes(String countryName, boolean isHigh) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getAllExtremes'");
+    }
+
+    @Override
+    public List<String> getCountriesWithRecordsFor(String variableId, boolean isHigh) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getCountriesWithRecordsFor'");
     }
 }

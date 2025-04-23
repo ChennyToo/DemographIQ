@@ -9,8 +9,8 @@ public class ExtremeRecord {
     private double value;             // The extreme value
     private double latitude;          // Location latitude
     private double longitude;         // Location longitude
-    private String countryCode;       // ISO country code, 000 if global
-    private String username;          // User who discovered this record
+    private String countryName;       // Country name
+    private String userId;          // User who discovered this record
     private LocalDateTime recordedAt; // When this record was set
     private boolean isHigh;           // True if this is a high value (find max population density), false if low (find min population density)
     
@@ -20,16 +20,16 @@ public class ExtremeRecord {
             double value, 
             double latitude, 
             double longitude, 
-            String countryCode, 
-            String userName, 
+            String countryName, 
+            String userId, 
             boolean isHigh) {
         this.variableId = variableId;
         this.variableName = variableName;
         this.value = value;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.countryCode = countryCode;
-        this.username = userName;
+        this.countryName = countryName;
+        this.userId = userId;
         this.recordedAt = LocalDateTime.now();
         this.isHigh = isHigh;
     }
@@ -82,20 +82,20 @@ public class ExtremeRecord {
         this.longitude = longitude;
     }
     
-    public String getCountryCode() {
-        return countryCode;
+    public String getcountryName() {
+        return countryName;
     }
     
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
+    public void setcountryName(String countryName) {
+        this.countryName = countryName;
     }
     
     public String getUsername() {
-        return username;
+        return userId;
     }
     
-    public void setUsername(String userName) {
-        this.username = userName;
+    public void setUsername(String userId) {
+        this.userId = userId;
     }
     
     public LocalDateTime getRecordedAt() {
