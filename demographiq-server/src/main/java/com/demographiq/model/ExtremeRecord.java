@@ -82,6 +82,7 @@ public class ExtremeRecord {
                 ", recordedAt=" + recordedAt +
                 ", isHigh=" + isHigh +
                 ", previousRecordsCount=" + (previousRecords != null ? previousRecords.size() : 0) +
+                ", previousRecords=" + previousRecords +
                 '}';
     }
 
