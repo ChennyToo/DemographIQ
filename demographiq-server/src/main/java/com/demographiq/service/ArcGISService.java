@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.demographiq.model.EnrichmentRequest;
 import com.demographiq.persistence.DataVariableMongoDAO;
-import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 
-import jakarta.annotation.PostConstruct;
 
 @Service
 public class ArcGISService {
@@ -34,11 +31,6 @@ public class ArcGISService {
     public ArcGISService(RedisApiThrottler redisApiThrottler, DataVariableMongoDAO dataVariableMongoDAO) {
         this.redisApiThrottler = redisApiThrottler;
         this.dataVariableMongoDAO = dataVariableMongoDAO;
-    }
-
-    @PostConstruct
-    public void init() {
-        setupArcGisRuntime(this.apiKey);
     }
 
     /**
@@ -115,29 +107,10 @@ public class ArcGISService {
             }
             
             // Extract and process the data using JsonParser
-            // return JSONParser.extractAttributeData(responseStr, dataVariable) + "";
-            logger.info("checkpoint 1");
-            dataVariableMongoDAO.getExtremeValue("US", "POPDENS_CY", true);
-            return "hi";
+            return JSONParser.extractAttributeData(responseStr, dataVariable) + "";
+            // logger.info("checkpoint 1");
+            // dataVariableMongoDAO.getExtremeValue("US", "POPDENS_CY", true);
+            // return "hi";
         }
-    }
-
-    
-    private void setupArcGisRuntime(String apiKey) {
-        String repoRoot = System.getProperty("user.dir");
-        
-        // Check if we're already in the demographiq-server directory
-        if (repoRoot.endsWith("demographiq-server")) {
-            // Use path directly
-            String arcgisPath = Paths.get(repoRoot, ".arcgis", "200.6.0").toString();
-            ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
-        } else {
-            // Use original path
-            String arcgisPath = Paths.get(repoRoot, "demographiq-server", ".arcgis", "200.6.0").toString();
-            ArcGISRuntimeEnvironment.setInstallDirectory(arcgisPath);
-        }
-        
-        // Initialize ArcGIS Runtime with your API key
-        ArcGISRuntimeEnvironment.setApiKey(apiKey);
     }
 }
