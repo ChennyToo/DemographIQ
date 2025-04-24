@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.demographiq.model.EnrichmentRequest;
+import com.demographiq.model.EnrichmentResponse;
 import com.demographiq.persistence.DataVariableMongoDAO;
 
 
@@ -52,7 +53,9 @@ public class ArcGISService {
         validateApiCall(latitude, longitude, userId);
         
         try {
-            return callArcGisApi(latitude, longitude, dataVariable);
+            String ApiResponse = callArcGisApi(latitude, longitude, dataVariable);
+
+            return ApiResponse;
         } catch (Exception e) {
             throw new RuntimeException("Error calling ArcGIS API: " + e.getMessage(), e);
         }
@@ -81,8 +84,9 @@ public class ArcGISService {
             }
             
             // Extract and process the data using JsonParser
-            return JSONParser.extractAttributeData(responseStr, dataVariable) + "";
-            // logger.info("checkpoint 1");
+            // Response is incomplete because it does not contain the ExtremeRecord yet from MongoDB
+            EnrichmentResponse incompleteResponse = JSONParser.extractAttributeData(responseStr, dataVariable);
+            return incompleteResponse + "";
             // dataVariableMongoDAO.getExtremeValue("US", "POPDENS_CY", true);
             // return "hi";
         }
