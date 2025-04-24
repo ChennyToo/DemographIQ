@@ -40,7 +40,7 @@ public class DataVariableMongoDAO implements DataVariableDAO {
     }
 
 
-    
+
     public static void main(String[] args) {
         String uri = "mongodb+srv://user:pass@demographiq.cbhbhvx.mongodb.net/?retryWrites=true&w=majority&appName=Demographiq";
        try (MongoClient mongoClient = MongoClients.create(uri)) {
@@ -115,72 +115,42 @@ public class DataVariableMongoDAO implements DataVariableDAO {
 
 
 
-/**
- * Retrieves the extreme value (highest or lowest) for a specific country and metric
- *
- * @param sourceCountry Country identier (e.g., "US", "CN", "RU")
- * @param variableId Metric identifier (e.g., "POPDENS_CY")
- * @param isHigh If true, retrieve from record_highs collection, else from record_lows
- * @return Optional containing the extreme record if found, empty otherwise
- */
-@Override
-public Optional<ExtremeRecord> getExtremeValue(String sourceCountry, String variableId, boolean isHigh) {
-    // Get the MongoDB database connection
-    MongoDatabase database = mongoClient.getDatabase("enrichment_data");
+    /**
+     * Retrieves the extreme value (highest or lowest) for a specific country and metric
+     *
+     * @param sourceCountry Country identier (e.g., "US", "CN", "RU")
+     * @param variableId Metric identifier (e.g., "POPDENS_CY")
+     * @param isHigh If true, retrieve from record_highs collection, else from record_lows
+     * @return Optional containing the extreme record if found, empty otherwise
+     */
+    @Override
+    public Optional<ExtremeRecord> getExtremeValue(String sourceCountry, String variableId, boolean isHigh) {
+        // Get the MongoDB database connection
+        MongoDatabase database = mongoClient.getDatabase("enrichment_data");
+        String collectionName = isHigh ? "record_highs" : "record_lows";
+        MongoCollection<Document> collection = database.getCollection(collectionName);
 
-    // Determine which collection to query based on whether we want record highs or lows
-    String collectionName = isHigh ? "record_highs" : "record_lows";
-    MongoCollection<Document> collection = database.getCollection(collectionName);
-
-    // Define the match filter to find the specific document by country and variable ID
-    Bson matchFilter = Filters.and(
+        // Use helper methods to build the query components
+        Bson matchFilter = Filters.and(
             Filters.eq("source_country", sourceCountry),
             Filters.eq("metric", variableId)
-    );
+        );
+        List<Bson> pipeline = buildExtremeValueProjectionPipeline(matchFilter);
 
-    // --- MANUAL CONSTRUCTION OF $PROJECT STAGE WITH $SLICE ---
-    // Define the projection to include only necessary fields and slice the previous_records array
-    Document projectStage = new Document("$project",
-            new Document("_id", 1) // Include _id
-                    .append("source_country", 1)
-                    .append("country_name", 1)
-                    .append("metric", 1)
-                    .append("metric_name", 1)
-                    .append("value", 1)
-                    .append("userId", 1)
-                    .append("record_date", 1)
-                    .append("last_updated", 1)
-                    .append("location", 1)
-                    // Use $slice explicitly with the field path "$previous_records" and the limit -2
-                    .append("previous_records", new Document("$slice", Arrays.asList("$previous_records", -2)))
-    );
-    // --- END MANUAL CONSTRUCTION ---
+        // Execute the aggregation pipeline
+        Document record = collection.aggregate(pipeline).first();
 
+        // Process the result using the converter
+        if (record != null) {
+            ExtremeRecord extremeRecord = converter.convertDocumentToExtremeRecord(record, isHigh);
+            logger.info("Found extreme record for country: {}, variable: {}", sourceCountry, variableId);
+            logger.info(extremeRecord.toString());
+            return Optional.of(extremeRecord);
+        }
 
-    // Create the aggregation pipeline
-    // The pipeline consists of a $match stage followed by a $project stage
-    List<Bson> pipeline = Arrays.asList(
-            new Document("$match", matchFilter),
-            projectStage // Use the manually constructed projectStage
-    );
-
-    // Execute the aggregation pipeline and get the first result
-    Document record = collection.aggregate(pipeline).first();
-
-    // Convert document to ExtremeRecord if found using the dedicated converter
-    if (record != null) {
-        ExtremeRecord extremeRecord = converter.convertDocumentToExtremeRecord(record, isHigh);
-        logger.info("Found extreme record for country: {}, variable: {}", sourceCountry, variableId);
-        logger.info(extremeRecord.toString());
-        return Optional.of(extremeRecord);
+        logger.info("No record found for country: {}, variable: {}", sourceCountry, variableId);
+        return Optional.empty();
     }
-
-    // Log if no record was found
-    logger.info("No record found for country: {}, variable: {}", sourceCountry, variableId);
-
-    // Return empty Optional if no record found
-    return Optional.empty();
-}
 
     @Override
     public boolean updateIfMoreExtreme(ExtremeRecord record, boolean isHigh) {
@@ -195,6 +165,38 @@ public Optional<ExtremeRecord> getExtremeValue(String sourceCountry, String vari
     @Override
     public List<String> getCountriesWithRecordsFor(String variableId, boolean isHigh) {
         throw new UnsupportedOperationException("Unimplemented method 'getCountriesWithRecordsFor'");
+    }
+
+    /**
+     * Helper method to build the aggregation pipeline for retrieving an extreme value
+     * with the previous_records array sliced.
+     *
+     * @param matchFilter The Bson match filter to use in the pipeline.
+     * @return The list of Bson stages for the aggregation pipeline.
+     */
+    private List<Bson> buildExtremeValueProjectionPipeline(Bson matchFilter) {
+        // Define the projection to include only necessary fields and slice the previous_records array
+        // Use $slice explicitly with the field path "$previous_records" and the limit -2
+        Document projectStage = new Document("$project",
+                new Document("_id", 1) // Include _id
+                        .append("source_country", 1)
+                        .append("country_name", 1)
+                        .append("metric", 1)
+                        .append("metric_name", 1)
+                        .append("value", 1)
+                        .append("userId", 1)
+                        .append("record_date", 1)
+                        .append("last_updated", 1)
+                        .append("location", 1)
+                        .append("previous_records", new Document("$slice", Arrays.asList("$previous_records", -2)))
+        );
+
+        // Create the aggregation pipeline
+        // The pipeline consists of a $match stage followed by a $project stage
+        return Arrays.asList(
+                new Document("$match", matchFilter),
+                projectStage
+        );
     }
 
 }
