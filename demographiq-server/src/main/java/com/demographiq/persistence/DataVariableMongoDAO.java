@@ -1,5 +1,6 @@
 package com.demographiq.persistence;
 
+import com.demographiq.model.EnrichmentResponse;
 import com.demographiq.model.ExtremeRecord;
 import com.demographiq.persistence.converter.ExtremeRecordConverter;
 import com.mongodb.client.MongoClient;
@@ -24,7 +25,7 @@ import java.util.Optional;
 
 
 @Component
-public class DataVariableMongoDAO implements DataVariableDAO {
+public class DataVariableMongoDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DataVariableMongoDAO.class);
 
@@ -123,7 +124,6 @@ public class DataVariableMongoDAO implements DataVariableDAO {
      * @param isHigh If true, retrieve from record_highs collection, else from record_lows
      * @return Optional containing the extreme record if found, empty otherwise
      */
-    @Override
     public Optional<ExtremeRecord> getExtremeValue(String sourceCountry, String variableId, boolean isHigh) {
         // Get the MongoDB database connection
         MongoDatabase database = mongoClient.getDatabase("enrichment_data");
@@ -152,17 +152,20 @@ public class DataVariableMongoDAO implements DataVariableDAO {
         return Optional.empty();
     }
 
-    @Override
-    public boolean updateIfMoreExtreme(ExtremeRecord record, boolean isHigh) {
+    public boolean updateIfMoreExtreme(EnrichmentResponse response, boolean isHigh) {
+        /**
+         * Utilize the isHigh flag to determine if we are checking for <= or >=
+         * Given that the new request is <= the current record, we do not need to update the record. Nothing else needs to be done
+         * If the new request is > the current record, we need to update the record.
+         * Information needed, Global Record, Country Record, Client Request
+         */
         throw new UnsupportedOperationException("Unimplemented method 'updateIfMoreExtreme'");
     }
 
-    @Override
     public List<ExtremeRecord> getAllExtremes(String countryName, boolean isHigh) {
         throw new UnsupportedOperationException("Unimplemented method 'getAllExtremes'");
     }
 
-    @Override
     public List<String> getCountriesWithRecordsFor(String variableId, boolean isHigh) {
         throw new UnsupportedOperationException("Unimplemented method 'getCountriesWithRecordsFor'");
     }

@@ -3,6 +3,7 @@ package com.demographiq.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.demographiq.model.EnrichmentResponse;
 import com.demographiq.model.ExtremeRecord;
 
 public interface DataVariableDAO {
@@ -17,14 +18,8 @@ public interface DataVariableDAO {
      */
     Optional<ExtremeRecord> getExtremeValue(String countryName, String variableId, boolean isHigh);
     
-    /**
-     * Check if value is more extreme than current record and update if it is
-     * 
-     * @param record The new record candidate (contains countryName field)
-     * @param isHigh True to check for higher values, false for lower values
-     * @return true if record was updated, false if not more extreme
-     */
-    boolean updateIfMoreExtreme(ExtremeRecord record, boolean isHigh);
+
+    boolean updateIfMoreExtreme(EnrichmentResponse response);
     
     /**
      * Get all extreme values for all variables for a specific country or globally

@@ -50,14 +50,17 @@ public class ArcGISService {
         double longitude = request.getLongitude();
         int userId = request.getUserId();
         String dataVariable = request.getDataVariable();
+        boolean isHigh = request.isHigh();
 
         //Will throw exception if anything is invalid
         validateApiCall(latitude, longitude, userId);
         
         try {
             EnrichmentResponse response = callArcGisApi(latitude, longitude, dataVariable);
-            Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(response.getSourceCountry(), dataVariable, true);
+            Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(response.getSourceCountry(), dataVariable, isHigh);
             response.setCurrentRecord(record.orElse(new ExtremeRecord()));
+            logger.info(response.toString());
+            // dataVariableMongoDAO.updateIfMoreExtreme(response, isHigh);
             return response;
         } catch (Exception e) {
             throw new RuntimeException("Error calling ArcGIS API: " + e.getMessage(), e);
