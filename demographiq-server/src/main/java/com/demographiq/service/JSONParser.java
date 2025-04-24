@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.stereotype.Service;
 
 import com.demographiq.model.EnrichmentResponse;
+import com.demographiq.model.ExtremeRecord;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,7 +36,7 @@ public class JSONParser {
         double attributeValue = attributesNode.path(dataVariable).asDouble(0.0);
         String sourceCountry = attributesNode.path("sourceCountry").asText("Unknown");
         System.out.println("FeatureSet attributes: " + attributesNode.path(dataVariable).toString());
-        EnrichmentResponse validResponse = new EnrichmentResponse(sourceCountry, dataVariable, attributeValue);
+        EnrichmentResponse validResponse = new EnrichmentResponse(sourceCountry, dataVariable, attributeValue, new ExtremeRecord());
         return validResponse;
     }
     

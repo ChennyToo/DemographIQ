@@ -13,7 +13,7 @@ public class ExtremeRecord {
     private double longitude;                 // Location longitude
     private String countryCode;               // Country code (e.g., "US")
     private String countryName;               // Country name
-    private String userId;                    // User who discovered this record
+    private Integer userId;                    // User who discovered this record
     private LocalDateTime recordedAt;         // When this record was set
     private boolean isHigh;                   // True if high value, false if low
     private List<PastExtremeRecord> previousRecords; // Previous records
@@ -32,7 +32,7 @@ public class ExtremeRecord {
             double longitude,
             String countryCode,
             String countryName, 
-            String userId, 
+            Integer userId, 
             boolean isHigh) {
         this.variableId = variableId;
         this.variableName = variableName;
@@ -56,7 +56,7 @@ public class ExtremeRecord {
         this.previousRecords = previousRecords != null ? previousRecords : new ArrayList<>();
     }
     
-    public void addPastRecord(double value, String userId, LocalDateTime recordedAt) {
+    public void addPastRecord(double value, Integer userId, LocalDateTime recordedAt) {
         if (this.previousRecords == null) {
             this.previousRecords = new ArrayList<>();
         }
@@ -150,11 +150,11 @@ public class ExtremeRecord {
         this.countryName = countryName;
     }
 
-    public String getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 

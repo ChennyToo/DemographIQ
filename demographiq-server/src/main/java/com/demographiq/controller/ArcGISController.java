@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.demographiq.model.EnrichmentRequest;
+import com.demographiq.model.EnrichmentResponse;
 import com.demographiq.service.ArcGISService;
 
 @RestController
@@ -24,7 +25,7 @@ public class ArcGISController {
     }
 
     @PostMapping("/enrich")
-    public ResponseEntity<String> enrichLocation(@RequestBody EnrichmentRequest request) {
+    public ResponseEntity<EnrichmentResponse> enrichLocation(@RequestBody EnrichmentRequest request) {
         return ResponseEntity.ok(arcGISService.enrichLocation(request));
     }
 

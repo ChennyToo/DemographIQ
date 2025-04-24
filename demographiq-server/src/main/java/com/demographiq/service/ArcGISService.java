@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.demographiq.model.EnrichmentRequest;
 import com.demographiq.model.EnrichmentResponse;
+import com.demographiq.model.ExtremeRecord;
 import com.demographiq.persistence.DataVariableMongoDAO;
 
 
@@ -43,25 +45,26 @@ public class ArcGISService {
      * @throws IllegalArgumentException if latitude or longitude are outside valid ranges
      * @throws RuntimeException if API calls are throttled or if there's an API error
      */
-    public String enrichLocation(EnrichmentRequest request) {
+    public EnrichmentResponse enrichLocation(EnrichmentRequest request) {
         double latitude = request.getLatitude();
         double longitude = request.getLongitude();
-        String userId = request.getUserId();
+        int userId = request.getUserId();
         String dataVariable = request.getDataVariable();
 
         //Will throw exception if anything is invalid
         validateApiCall(latitude, longitude, userId);
         
         try {
-            String ApiResponse = callArcGisApi(latitude, longitude, dataVariable);
-
-            return ApiResponse;
+            EnrichmentResponse response = callArcGisApi(latitude, longitude, dataVariable);
+            Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(response.getSourceCountry(), dataVariable, true);
+            response.setCurrentRecord(record.orElse(new ExtremeRecord()));
+            return response;
         } catch (Exception e) {
             throw new RuntimeException("Error calling ArcGIS API: " + e.getMessage(), e);
         }
     }
     
-    private String callArcGisApi(double latitude, double longitude, String dataVariable) throws Exception {
+    private EnrichmentResponse callArcGisApi(double latitude, double longitude, String dataVariable) throws Exception {
         URL url = getApiUrl(latitude, longitude, dataVariable);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -86,7 +89,7 @@ public class ArcGISService {
             // Extract and process the data using JsonParser
             // Response is incomplete because it does not contain the ExtremeRecord yet from MongoDB
             EnrichmentResponse incompleteResponse = JSONParser.extractAttributeData(responseStr, dataVariable);
-            return incompleteResponse + "";
+            return incompleteResponse;
             // dataVariableMongoDAO.getExtremeValue("US", "POPDENS_CY", true);
             // return "hi";
         }
@@ -109,7 +112,7 @@ public class ArcGISService {
         return URI.create(urlString).toURL();
     }
 
-    public void validateApiCall(double latitude, double longitude, String userId) {
+    public void validateApiCall(double latitude, double longitude, int userId) {
         if (latitude < -90 || latitude > 90) {
             throw new IllegalArgumentException("Latitude must be between -90 and +90 degrees");
         }

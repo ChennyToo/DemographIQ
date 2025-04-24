@@ -16,8 +16,8 @@ public class RedisApiThrottler {
         this.jedis = jedisPooled;
     }
 
-    public boolean registerApiCall(String userKey) {
-        boolean userResponse = registerUserApiCall(userKey);
+    public boolean registerApiCall(Integer userId) {
+        boolean userResponse = registerUserApiCall(userId);
         boolean serverResponse = registerServerApiCall();
         if (userResponse == false || serverResponse == false) {
             return false; // API call limit exceeded
@@ -26,14 +26,15 @@ public class RedisApiThrottler {
         }
     }
 
-    private boolean registerUserApiCall(String userKey) {
-        long userUsageCount = jedis.incr(userKey);
-        System.out.println("API calls made so far by user " + userKey + " past minute " + userUsageCount);
+    private boolean registerUserApiCall(Integer userId) {
+        String userUsageKey = "user(minute):" + userId;
+        long userUsageCount = jedis.incr(userUsageKey);
+        System.out.println("API calls made so far by user " + userId + " past minute " + userUsageCount);
         if (userUsageCount == 1) {
-            jedis.expire(userKey, 60);
+            jedis.expire(userUsageKey, 60);
         }
         if (userUsageCount > MAX_USER_CALLS_MINUTE) {
-            System.out.println("API call limit exceeded for user " + userKey);
+            System.out.println("API call limit exceeded for user " + userId);
             return false;
         } else {
             return true;

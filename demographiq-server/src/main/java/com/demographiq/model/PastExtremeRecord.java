@@ -7,14 +7,14 @@ import java.time.LocalDateTime;
  */
 public class PastExtremeRecord {
     private double value;           // The past extreme value
-    private String userId;          // User who recorded this value
+    private Integer userId;          // User who recorded this value
     private LocalDateTime recordedAt; // When this record was set
     
     // Default constructor
     public PastExtremeRecord() {
     }
     
-    public PastExtremeRecord(double value, String userId, LocalDateTime recordedAt) {
+    public PastExtremeRecord(double value, Integer userId, LocalDateTime recordedAt) {
         this.value = value;
         this.userId = userId;
         this.recordedAt = recordedAt;
@@ -29,11 +29,11 @@ public class PastExtremeRecord {
         this.value = value;
     }
     
-    public String getUserId() {
+    public Integer getUserId() {
         return userId;
     }
     
-    public void setUserId(String userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
     

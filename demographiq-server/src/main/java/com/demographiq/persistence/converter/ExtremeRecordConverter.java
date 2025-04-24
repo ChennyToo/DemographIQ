@@ -42,12 +42,10 @@ public class ExtremeRecordConverter {
         record.setCountryName(document.getString("country_name"));
         record.setVariableId(document.getString("metric"));
         record.setVariableName(document.getString("metric_name"));
+        record.setUserId(document.getInteger("userId"));
 
         // Handle numeric value using helper method
         record.setValue(extractValue(document));
-
-        // Set user ID using helper method
-        record.setUserId(extractUserId(document));
 
         // Set dates using helper method
         record.setRecordedAt(extractRecordedAt(document));
@@ -80,18 +78,6 @@ public class ExtremeRecordConverter {
         }
         // Return a default value or handle as an error if value is mandatory
         return 0.0;
-    }
-
-    /**
-     * Helper method to extract and convert the 'userId' field from the document.
-     * Converts Integer to String.
-     *
-     * @param document The MongoDB document.
-     * @return The user ID as a String, or null if not found.
-     */
-    private String extractUserId(Document document) {
-        Integer userIdInt = document.getInteger("userId");
-        return userIdInt != null ? userIdInt.toString() : null;
     }
 
     /**
@@ -153,8 +139,7 @@ public class ExtremeRecordConverter {
                 }
 
                 // Extract userId
-                Integer prevUserIdInt = prevDoc.getInteger("userId");
-                String prevUserId = prevUserIdInt != null ? prevUserIdInt.toString() : null;
+                Integer prevUserId = prevDoc.getInteger("userId");
 
                 // Extract date
                 LocalDateTime prevRecordedAt = null;
