@@ -60,7 +60,7 @@ public class ArcGISService {
             Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(response.getSourceCountry(), dataVariable, isHigh);
             response.setCurrentRecord(record.orElse(new ExtremeRecord()));
             logger.info(response.toString());
-            // dataVariableMongoDAO.updateIfMoreExtreme(response, isHigh);
+            dataVariableMongoDAO.updateIfMoreExtreme(response, request, isHigh);
             return response;
         } catch (Exception e) {
             throw new RuntimeException("Error calling ArcGIS API: " + e.getMessage(), e);
