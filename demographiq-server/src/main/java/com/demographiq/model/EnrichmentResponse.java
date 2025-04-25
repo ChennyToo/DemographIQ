@@ -10,6 +10,7 @@ public class EnrichmentResponse {
     private String sourceCountry; // e.g., "US"
     private String variableId; // e.g., "POPDENS_CY"
     private double value; // e.g., 1000.0
+    private Integer score; // Out of 5000
     private ExtremeRecord currentRecord; // The current extreme record
 
     public EnrichmentResponse(String sourceCountry, String variableId, double value, ExtremeRecord currentRecord) {
@@ -18,6 +19,8 @@ public class EnrichmentResponse {
         this.value = value;
         this.currentRecord = currentRecord;
     }
+
+    
 
     public String toString() {
         return "EnrichmentResponse{" +
@@ -50,6 +53,14 @@ public class EnrichmentResponse {
 
     public void setValue(double value) {
         this.value = value;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
     }
 
     public ExtremeRecord getCurrentRecord() {

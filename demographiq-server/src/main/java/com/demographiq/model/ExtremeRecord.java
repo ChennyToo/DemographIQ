@@ -3,6 +3,7 @@ package com.demographiq.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ExtremeRecord {
     private String id;                        // document ID
@@ -45,6 +46,14 @@ public class ExtremeRecord {
         this.recordedAt = LocalDateTime.now();
         this.isHigh = isHigh;
         this.previousRecords = new ArrayList<>();
+    }
+
+    public boolean isEmpty() {
+        // This will only be true is there are no Document fetched from MongoDB
+        return Objects.isNull(this.id) &&
+               Objects.isNull(this.variableId) &&
+               Objects.isNull(this.variableName) &&
+               this.value == 0.0;
     }
     
     

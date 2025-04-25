@@ -58,10 +58,19 @@ public class ArcGISService {
         try {
             EnrichmentResponse response = callArcGisApi(latitude, longitude, dataVariable);
             Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(response.getSourceCountry(), dataVariable, isHigh);
+            //Current record will be an existing record from MongoDB or we make an empty ExrtremeRecord instance to signify that there is no record yet stored in MongoDB
             response.setCurrentRecord(record.orElse(new ExtremeRecord()));
-            logger.info(response.toString());
-            dataVariableMongoDAO.updateIfMoreExtreme(response, request, isHigh);
-            return response;
+            if (isCorrectCountry(response, request)) {
+                dataVariableMongoDAO.updateIfMoreExtreme(response, request, isHigh);
+                response.setScore(getScore(response, request));
+                return response;
+            } 
+
+            else {
+                response.setScore(0);
+                return response;
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Error calling ArcGIS API: " + e.getMessage(), e);
         }
@@ -98,7 +107,7 @@ public class ArcGISService {
         }
     }
 
-    public URL getApiUrl(double latitude, double longitude, String dataVariable) throws Exception {
+    private URL getApiUrl(double latitude, double longitude, String dataVariable) throws Exception {
         // Create the JSON string for study areas
         String studyAreasJson = "[{\"geometry\":{\"x\":" + longitude + ",\"y\":" + latitude + "}}]";
         
@@ -115,7 +124,7 @@ public class ArcGISService {
         return URI.create(urlString).toURL();
     }
 
-    public void validateApiCall(double latitude, double longitude, int userId) {
+    private void validateApiCall(double latitude, double longitude, int userId) {
         if (latitude < -90 || latitude > 90) {
             throw new IllegalArgumentException("Latitude must be between -90 and +90 degrees");
         }
@@ -126,5 +135,52 @@ public class ArcGISService {
         if (!hasCallsLeft) {
             throw new RuntimeException("API call limit exceeded. Please try again later.");
         }
+    }
+
+    private boolean isCorrectCountry( EnrichmentResponse response, EnrichmentRequest request) {
+        //Given that the user is playing on global game mode, this is fine
+        if (request.getSourceCountry() == "WORLD") {
+            logger.info("User is playing on global game mode.");
+            return true;
+        }
+
+        //Given the user is playing on Japan game mode, and they guess somewhere in United States, issues arise
+        //We must not allow for the database to be updated with a US record, when the user is playing on Japan game mode
+        else if (response.getSourceCountry().equals(request.getSourceCountry())) {
+            logger.info("Request and response countries match as " + request.getSourceCountry());
+            return true;
+        } 
+        
+        else {
+            logger.info("Request source country of " + request.getSourceCountry() + " does not match response source country of " + response.getSourceCountry());
+            return false;
+        }
+    }
+
+    private Integer getScore(EnrichmentResponse response, EnrichmentRequest request) {
+        if (response.getCurrentRecord().isEmpty()) {
+            return 5000; // No previous record, so the user is the first to set this record
+        }
+
+        boolean isHigh = request.isHigh();
+        double clientValue = response.getValue();
+        double databaseValue = response.getCurrentRecord().getValue();
+        double calculatedScore;
+    
+        if (isHigh) {
+            // Calculate score for 'high' scenario
+            calculatedScore = (clientValue / databaseValue) * 5000;
+        } else {
+            // Calculate score for 'low' scenario
+            calculatedScore = (databaseValue / clientValue) * 5000;
+        }
+    
+        // Round up to the nearest integer
+        int roundedScore = (int) Math.ceil(calculatedScore);
+    
+        // Ensure the score never exceeds 5000
+        int finalScore = Math.min(roundedScore, 5000);
+    
+        return finalScore;
     }
 }

@@ -8,6 +8,9 @@ public class EnrichmentRequest {
     
     @JsonProperty("longitude")
     private Double longitude;
+
+    @JsonProperty("sourceCountry")
+    private String sourceCountry;
     
     @JsonProperty("userId")
     private Integer userId;
@@ -21,11 +24,13 @@ public class EnrichmentRequest {
     public EnrichmentRequest(
             @JsonProperty("latitude") Double latitude,
             @JsonProperty("longitude") Double longitude,
+            @JsonProperty("sourceCountry") String sourceCountry,
             @JsonProperty("userId") Integer userId,
             @JsonProperty("dataVariable") String dataVariable,
             @JsonProperty("isHigh") boolean isHigh) {
         this.latitude = latitude;
         this.longitude = longitude;
+        this.sourceCountry = sourceCountry;
         this.userId = userId;
         this.dataVariable = dataVariable;
         this.isHigh = isHigh;
@@ -45,6 +50,14 @@ public class EnrichmentRequest {
     
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public String getSourceCountry() {
+        return sourceCountry;
+    }
+
+    public void setSourceCountry(String sourceCountry) {
+        this.sourceCountry = sourceCountry;
     }
     
     public Integer getUserId() {
