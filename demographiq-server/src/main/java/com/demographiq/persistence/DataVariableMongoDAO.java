@@ -14,14 +14,12 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 
-import javafx.scene.chart.PieChart.Data;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -36,8 +34,6 @@ public class DataVariableMongoDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(DataVariableMongoDAO.class);
 
-    private final MongoClient mongoClient;
-
     private final ExtremeRecordConverter recordConverter;
     private final CountryNameConverter countryConverter;
     private final DataVariableNameConverter dataVariableConverter;
@@ -47,7 +43,6 @@ public class DataVariableMongoDAO {
     //Dependency injection of MongoClient and ExtremeRecordConverter from MongoConfig.java
     @Autowired
     public DataVariableMongoDAO(MongoClient mongoClient, ExtremeRecordConverter recordConverter, CountryNameConverter countryConverter, DataVariableNameConverter dataVariableConverter) {
-        this.mongoClient = mongoClient;
         this.recordConverter = recordConverter;
         this.countryConverter = countryConverter;
         this.dataVariableConverter = dataVariableConverter;
