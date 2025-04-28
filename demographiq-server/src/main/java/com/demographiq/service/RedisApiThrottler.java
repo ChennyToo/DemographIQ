@@ -2,12 +2,13 @@ package com.demographiq.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import redis.clients.jedis.JedisPooled;
 
 @Service
 public class RedisApiThrottler {
     private final JedisPooled jedis;
-    private String serverGlobalCallsKey = "globalCalls";
+    private final String serverGlobalCallsKey = "globalCalls";
     private final int MAX_USER_CALLS_MINUTE = 3;
     private final int MAX_SERVER_CALLS_MINUTE = 5;
 
@@ -19,11 +20,8 @@ public class RedisApiThrottler {
     public boolean registerApiCall(Integer userId) {
         boolean userResponse = registerUserApiCall(userId);
         boolean serverResponse = registerServerApiCall();
-        if (userResponse == false || serverResponse == false) {
-            return false; // API call limit exceeded
-        } else {
-            return true; // API call allowed
-        }
+        //Return true if both user and server limits are not exceeded, indicating both are allowed
+        return (userResponse == true && serverResponse == true);
     }
 
     private boolean registerUserApiCall(Integer userId) {

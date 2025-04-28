@@ -139,7 +139,7 @@ public class ArcGISService {
 
     private boolean isCorrectCountry( EnrichmentResponse response, EnrichmentRequest request) {
         //Given that the user is playing on global game mode, this is fine
-        if (request.getSourceCountry() == "WORLD") {
+        if ("WORLD".equals(request.getSourceCountry())) {
             logger.info("User is playing on global game mode.");
             return true;
         }

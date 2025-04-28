@@ -1,14 +1,18 @@
 package com.demographiq.persistence.converter;
 
-import com.demographiq.model.ExtremeRecord;
-import com.demographiq.model.PastExtremeRecord;
-import org.bson.Document;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.demographiq.model.ExtremeRecord;
+import com.demographiq.model.PastExtremeRecord;
 
 
 /**
@@ -16,6 +20,9 @@ import java.util.List;
  * This class is responsible solely for the mapping logic.
  */
 public class ExtremeRecordConverter {
+
+    private static final Logger logger = LoggerFactory.getLogger(ExtremeRecordConverter.class);
+
 
     /**
      * Convert a MongoDB document to an ExtremeRecord object
@@ -64,20 +71,18 @@ public class ExtremeRecordConverter {
 
     /**
      * Helper method to extract and convert the 'value' field from the document.
-     * Handles both Integer and Double types.
      *
      * @param document The MongoDB document.
-     * @return The value as a double, defaults to 0.0 if not found or invalid type.
+     * @return The value as a double, throws an exception if extration fails.
      */
     private double extractValue(Document document) {
         Object valueObj = document.get("value");
-        if (valueObj instanceof Integer) {
-            return ((Integer) valueObj).doubleValue();
-        } else if (valueObj instanceof Double) {
-            return (Double) valueObj;
+        if (valueObj instanceof Number number) {
+            return number.doubleValue();
         }
-        // Return a default value or handle as an error if value is mandatory
-        return 0.0;
+        String errorMessage = "MongoDB document value extraction failed.";
+        logger.error(errorMessage + " Document ID: {}", document.getObjectId("_id"));
+        throw new IllegalArgumentException(errorMessage);
     }
 
     /**
@@ -121,38 +126,44 @@ public class ExtremeRecordConverter {
      * Helper method to extract and convert the 'previous_records' list.
      *
      * @param document The MongoDB document.
-     * @return A list of PastExtremeRecord objects, or null if the list is not found or empty.
+     * @return A list of PastExtremeRecord objects, may be empty.
      */
     private List<PastExtremeRecord> extractPreviousRecords(Document document) {
         List<Document> previousRecordDocs = document.getList("previous_records", Document.class);
-        if (previousRecordDocs != null && !previousRecordDocs.isEmpty()) {
-            List<PastExtremeRecord> previousRecords = new ArrayList<>();
 
-            for (Document prevDoc : previousRecordDocs) {
-                // Extract value
-                double prevValue = 0.0;
-                Object prevValueObj = prevDoc.get("value");
-                if (prevValueObj instanceof Integer) {
-                    prevValue = ((Integer) prevValueObj).doubleValue();
-                } else if (prevValueObj instanceof Double) {
-                    prevValue = (Double) prevValueObj;
-                }
+        if (previousRecordDocs == null || previousRecordDocs.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-                // Extract userId
+        List<PastExtremeRecord> previousRecords = new ArrayList<>();
+
+        for (Document prevDoc : previousRecordDocs) {
+            try {
+                double prevValue = extractValue(prevDoc);
                 Integer prevUserId = prevDoc.getInteger("userId");
-
-                // Extract date
-                LocalDateTime prevRecordedAt = null;
-                Date prevRecordDate = prevDoc.getDate("record_date");
-                if (prevRecordDate != null) {
-                    prevRecordedAt = LocalDateTime.ofInstant(prevRecordDate.toInstant(), ZoneId.systemDefault());
-                }
-
-                // Create and add past record
+                LocalDateTime prevRecordedAt = extractRecordedAtFromDate(prevDoc.getDate("record_date"));
                 PastExtremeRecord pastRecord = new PastExtremeRecord(prevValue, prevUserId, prevRecordedAt);
                 previousRecords.add(pastRecord);
+            } catch (IllegalArgumentException e) {
+                logger.error("Skipping invalid previous record due to extraction error: {}. Document ID: {}, Previous Record: {}",
+                             e.getMessage(), document.getObjectId("_id"), prevDoc.toJson());
+            } catch (Exception e) {
+                 logger.error("Unexpected error processing previous record. Document ID: {}, Previous Record: {}, Error: {}",
+                             document.getObjectId("_id"), prevDoc.toJson(), e.getMessage(), e);
             }
-            return previousRecords;
+        }
+        return previousRecords;
+    }
+
+     /**
+     * Helper method to convert a Date object to LocalDateTime.
+     *
+     * @param date The Date object to convert.
+     * @return The corresponding LocalDateTime, or null if the input date is null.
+     */
+    private LocalDateTime extractRecordedAtFromDate(Date date) {
+        if (date != null) {
+            return LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
         }
         return null;
     }

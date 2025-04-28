@@ -1,5 +1,18 @@
 package com.demographiq.persistence;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.demographiq.model.EnrichmentRequest;
 import com.demographiq.model.EnrichmentResponse;
 import com.demographiq.model.ExtremeRecord;
@@ -13,20 +26,6 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
-
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 
 @Component
@@ -94,12 +93,12 @@ public class DataVariableMongoDAO {
                 );
 
                 if (result.getModifiedCount() > 0) {
-                    System.out.println("Record updated successfully!");
+                    logger.info("Record updated successfully!");
                 } else {
-                    System.out.println("No documents were updated");
+                    logger.info("No documents were updated");
                 }
             } else {
-                System.out.println("No record found for US population density");
+                logger.info("No record found for US population density");
                 Document newRecord = new Document()
                     .append("source_country", "US")
                     .append("country_name", "United States")
@@ -115,11 +114,10 @@ public class DataVariableMongoDAO {
                     .append("last_updated", new Date());
 
                 collection.insertOne(newRecord);
-                System.out.println("New record inserted!");
+                logger.info("New record inserted!");
             }
         } catch (Exception e) {
-            System.err.println("Error updating record: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error updating record: " + e.getMessage());
         }
     }
 
@@ -138,7 +136,6 @@ public class DataVariableMongoDAO {
         if (record != null) {
             ExtremeRecord extremeRecord = recordConverter.convertDocumentToExtremeRecord(record, isHigh);
             logger.info("Found extreme record for country: {}, variable: {}", sourceCountry, variableId);
-            logger.info(extremeRecord.toString());
             return Optional.of(extremeRecord);
         }
 
