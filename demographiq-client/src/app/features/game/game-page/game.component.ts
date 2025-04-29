@@ -1,11 +1,15 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core'; // Removed ViewChild; Added OnInit
+import { CommonModule } from '@angular/common'; // Import CommonModule
 import { MapDisplayComponent } from '../components/map-display/map-display.component';
 import { GameStatusDisplayComponent } from '../components/game-status-display/game-status-display.component';
 import { GuessButtonComponent } from '../components/guess-button/guess-button.component';
+import { GameService } from '../services/game.service'; // Import GameService
 
 @Component({
   selector: 'app-game',
+  standalone: true, // Ensure standalone is true if using it
   imports: [
+    CommonModule, // Add CommonModule
     MapDisplayComponent,
     GameStatusDisplayComponent,
     GuessButtonComponent,
@@ -14,23 +18,5 @@ import { GuessButtonComponent } from '../components/guess-button/guess-button.co
   styleUrl: './game.component.css',
 })
 export class GameComponent {
-    public isLocationSelected: boolean = false;
-    public selectedCoordinates: { latitude: number; longitude: number } | null = null;
-    @ViewChild(MapDisplayComponent, { static: false }) mapDisplayComponent!: MapDisplayComponent;
-
-
-    onMapClicked(event: { latitude: number; longitude: number }) {
-      this.isLocationSelected = true;
-      this.selectedCoordinates = event;
-    }
-
-    handleGuess() {
-      if (this.selectedCoordinates) {
-        console.log('Guessing with coordinates:', this.selectedCoordinates);
-        this.mapDisplayComponent.removeMarker();
-        this.isLocationSelected = false;
-        this.selectedCoordinates = null;
-
-      }
-    }
+    constructor(private gameService: GameService) {}
 }

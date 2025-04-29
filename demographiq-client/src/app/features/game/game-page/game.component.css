@@ -6,13 +6,11 @@
   }
   
   .game-container {
-    position: relative; /* Positioning context for absolute children */
+    position: relative;
     height: 100%;
     width: 100%;
-    /* REMOVED flex properties */
   }
   
-  /* Target the host element directly */
   .status-area {
     position: absolute;
     top: 1rem;
@@ -25,11 +23,6 @@
     padding: 1rem;
     border-radius: 0.3rem;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-  
-  .map-area {
-    height: 100%;
-    width: 100%;
   }
   
   .map-display {

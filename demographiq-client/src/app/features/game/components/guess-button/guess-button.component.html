@@ -5,8 +5,8 @@
     'guess-button': true,
     'guess-button-disabled': !isLocationSelected,
     'guess-button-enabled': isLocationSelected
-  }" 
-  (click)="onButtonClick()">
+  }"
+  (click)="onClick()">
   <span *ngIf="!isLocationSelected">Place a marker first</span>
   <span *ngIf="isLocationSelected">Guess!</span>
 </button>

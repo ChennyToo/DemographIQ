@@ -2,6 +2,8 @@ import { Component, Output, EventEmitter, OnInit, OnDestroy, AfterViewInit, PLAT
 import { isPlatformBrowser } from '@angular/common';
 // Import the TYPE ONLY for type checking in the component
 import type * as Leaflet from 'leaflet';
+import { GameService } from '../../services/game.service';
+import { Subscription } from 'rxjs';
 type LeafletModule = typeof import('leaflet');
 
 @Component({
@@ -12,13 +14,19 @@ type LeafletModule = typeof import('leaflet');
   styleUrl: './map-display.component.css'
 })
 export class MapDisplayComponent implements AfterViewInit, OnDestroy {
-  @Output() mapClicked = new EventEmitter<{ latitude: number, longitude: number }>();
   private marker: L.Marker | null = null;
   private map: Leaflet.Map | null = null;
   private isBrowser: boolean;
+  private resetSubscription: Subscription | null = null;
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private gameService: GameService) {
     this.isBrowser = isPlatformBrowser(this.platformId);
+  }
+
+  ngOnInit(): void {
+    this.resetSubscription = this.gameService.resetMarker$.subscribe(() => {
+      this.removeMarker();
+    });
   }
 
   async ngAfterViewInit(): Promise<void> {
@@ -39,7 +47,7 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private initMap(leaflet: LeafletModule): void {
+  private initMap(leaflet: LeafletModule) {
     this.createMapInstance(leaflet);
     this.setTileLayer(leaflet);
     this.setupClickListener(leaflet);
@@ -56,7 +64,7 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private setTileLayer(leaflet: LeafletModule): void {
+  private setTileLayer(leaflet: LeafletModule) {
     //OpenStreetMap tile layer
     leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -74,9 +82,7 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
 
     this.map.on('click', (event: L.LeafletMouseEvent) => {
       const coords = event.latlng;
-      this.mapClicked.emit({ latitude: coords.lat, longitude: coords.lng });
-
-      // Use the component property 'this.marker'
+      this.gameService.setSelectedLocation({ latitude: coords.lat, longitude: coords.lng });
       if (this.marker) {
         this.marker.setLatLng(coords);
       } else {
@@ -85,10 +91,10 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  public removeMarker(): void {
+  private removeMarker() {
     if (this.marker && this.map) {
       this.map.removeLayer(this.marker);
-      this.marker = null; // Reset the property
+      this.marker = null;
       console.log("MapDisplay: Marker removed.");
     }
   }
