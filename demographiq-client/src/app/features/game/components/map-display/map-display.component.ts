@@ -13,6 +13,7 @@ type LeafletModule = typeof import('leaflet');
 })
 export class MapDisplayComponent implements AfterViewInit, OnDestroy {
   @Output() mapClicked = new EventEmitter<{ latitude: number, longitude: number }>();
+  private marker: L.Marker | null = null;
   private map: Leaflet.Map | null = null;
   private isBrowser: boolean;
 
@@ -63,6 +64,7 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
   }
 
   private setupClickListener(leaflet: LeafletModule) {
+    if (!this.map) return;
     const marketIconSizePx = 40;
     const customMarkerIcon = leaflet.icon({
       iconUrl: '/assets/map_marker.png',
@@ -70,15 +72,24 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
       iconAnchor: [(marketIconSizePx / 2), marketIconSizePx],
     });
 
-    let marker: L.Marker | null = null;
-    this.map!.on('click', (event: L.LeafletMouseEvent) => {
+    this.map.on('click', (event: L.LeafletMouseEvent) => {
       const coords = event.latlng;
       this.mapClicked.emit({ latitude: coords.lat, longitude: coords.lng });
-      if (marker) { // If the market already is on map, just update its position
-        marker.setLatLng(coords);
+
+      // Use the component property 'this.marker'
+      if (this.marker) {
+        this.marker.setLatLng(coords);
       } else {
-        marker = leaflet.marker(coords, { icon: customMarkerIcon }).addTo(this.map!);
+        this.marker = leaflet.marker(coords, { icon: customMarkerIcon }).addTo(this.map!);
       }
     });
+  }
+
+  public removeMarker(): void {
+    if (this.marker && this.map) {
+      this.map.removeLayer(this.marker);
+      this.marker = null; // Reset the property
+      console.log("MapDisplay: Marker removed.");
+    }
   }
 }

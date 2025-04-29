@@ -37,3 +37,11 @@
      height: 100%;
      width: 100%;
   }
+
+  .guess-button {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+  }

@@ -1,0 +1,12 @@
+<button
+  type="button"
+  [disabled]="!isLocationSelected"
+  [ngClass]="{
+    'guess-button': true,
+    'guess-button-disabled': !isLocationSelected,
+    'guess-button-enabled': isLocationSelected
+  }" 
+  (click)="onButtonClick()">
+  <span *ngIf="!isLocationSelected">Place a marker first</span>
+  <span *ngIf="isLocationSelected">Guess!</span>
+</button>
