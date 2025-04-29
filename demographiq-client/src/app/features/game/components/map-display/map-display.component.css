@@ -1,5 +1,13 @@
+
+/* Target the Leaflet container and override the cursor */
+:host ::ng-deep .leaflet-grab,
+:host ::ng-deep .leaflet-interactive {
+  cursor: default !important;
+}
+
+
 .map-container {
     height: 100%;
     width: 100%;
-    border: 2px solid red;
+    border: 7px solid rgb(53, 116, 68);
   }
