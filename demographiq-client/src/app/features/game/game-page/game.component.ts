@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
 import { MapDisplayComponent } from "../components/map-display/map-display.component";
+import { GameStatusDisplayComponent } from "../components/game-status-display/game-status-display.component";
 
 @Component({
   selector: 'app-game',
-  imports: [MapDisplayComponent],
+  imports: [MapDisplayComponent, GameStatusDisplayComponent],
   templateUrl: './game.component.html',
   styleUrl: './game.component.css'
 })

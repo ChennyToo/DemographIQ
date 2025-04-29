@@ -26,7 +26,7 @@ export class MapDisplayComponent implements AfterViewInit, OnDestroy {
         const leaflet = await import('leaflet');
         this.initMap(leaflet);
       } catch (error) {
-        console.error(`MapDisplay : Failed to load Leaflet:`, error);
+        console.error("MapDisplay : ", error);
       }
     }
   }

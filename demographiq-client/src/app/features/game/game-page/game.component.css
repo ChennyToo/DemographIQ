@@ -1,48 +1,39 @@
-/* filepath: c:\Users\Kevin\DemographIQ\demographiq-client\src\app\features\game\page\game.component.css */
 :host {
-    display: block; /* Important for sizing */
-    height: 100vh; /* Take full viewport height */
-    width: 100vw;  /* Take full viewport width */
-    overflow: hidden; /* Prevent unexpected scrollbars */
+    display: block;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
   }
   
   .game-container {
-    position: relative;
-    height: 100%; /* Fill the :host element */
+    position: relative; /* Positioning context for absolute children */
+    height: 100%;
     width: 100%;
-    display: flex; /* Use flexbox for layout */
-    flex-direction: column; /* Stack children vertically */
+    /* REMOVED flex properties */
   }
   
+  /* Target the host element directly */
   .status-area {
-    position: absolute; /* Position over map */
-    top: 15px;
-    right: 15px;
-    z-index: 100;
-    /* flex-shrink: 0; */ /* Prevent shrinking if using flex */
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    text-align: center;
+    width: 12rem;
+    height: 3rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 1rem;
+    border-radius: 0.3rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
   
   .map-area {
-    flex-grow: 1; /* Allow map area to take remaining vertical space */
-    height: 100%; /* Or remove if using flex-grow */
+    height: 100%;
     width: 100%;
-    position: relative; /* Optional: if needed for map overlays */
   }
   
-  /* Ensure map-display component fills map-area */
-  .map-area app-map-display {
+  .map-display {
      display: block;
      height: 100%;
      width: 100%;
-  }
-  
-  
-  .controls-area {
-    position: absolute; /* Position over map */
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    /* flex-shrink: 0; */ /* Prevent shrinking if using flex */
-    /* ... other control styles */
   }
