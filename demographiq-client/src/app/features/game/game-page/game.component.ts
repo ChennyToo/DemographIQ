@@ -17,6 +17,10 @@ import { GameService } from '../services/game.service'; // Import GameService
   templateUrl: './game.component.html',
   styleUrl: './game.component.css',
 })
-export class GameComponent {
+export class GameComponent implements OnInit {
     constructor(private gameService: GameService) {}
+
+    ngOnInit() {
+      this.gameService.startGame("WORLD", 5);
+    }
 }

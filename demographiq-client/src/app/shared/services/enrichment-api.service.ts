@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
 import { EnrichmentRequest } from '../models/enrichment-request';
@@ -52,8 +52,7 @@ export class EnrichmentApiService {
       // Better error message for user
       this.log(`${operation} failed: ${error.message}`);
 
-      // Let the app keep running by returning an empty result
-      return of(result as T);
+      return throwError(() => error);
     };
   }
 
