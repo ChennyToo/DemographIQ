@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subject } from 'rxjs'; // Import RxJS classes
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { EnrichmentApiService } from '../../../shared/services/enrichment-api.service';
+import { EnrichmentRequest } from '../../../shared/models/enrichment-request';
 
-// Define interface for coordinates (good practice)
 interface Coordinates {
   latitude: number;
   longitude: number;
@@ -19,7 +20,7 @@ export class GameService {
   readonly isLocationSelected$: Observable<boolean> = this._isLocationSelected.asObservable();
   readonly resetMarker$: Observable<void> = this._resetMarker.asObservable();
 
-  constructor() { }
+  constructor(private enrichmentApiService: EnrichmentApiService) { }
   setSelectedLocation(coordinates: Coordinates) {
     console.log('GameService: Setting selected location', coordinates);
     this._selectedLocation.next(coordinates);
@@ -37,7 +38,30 @@ export class GameService {
     console.log('GameService: Guess made for location:', coordinates);
     this._resetMarker.next();
     this.resetSelection();
+    const currentDataVariable = 'POPDENS_CY';
+    const currentSourceCountry = 'US';
+    const currentUserId = 123;
+    const isGuessHigh = true;
+    const enrichmentRequest: EnrichmentRequest = {
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      sourceCountry: currentSourceCountry,
+      userId: currentUserId,
+      dataVariable: currentDataVariable,
+      isHigh: isGuessHigh
+    };
+    this.enrichmentApiService.enrichLocation(enrichmentRequest).subscribe({
+      next: response => {
+        console.log('Enrichment response:', response);
+      },
+      error: error => {
+        console.error('Error during enrichment:', error);
+      },
+
+    });
   }
+
+  
 
   private resetSelection() {
     this._selectedLocation.next(null);

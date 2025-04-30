@@ -15,7 +15,7 @@ import { EnrichmentResponse } from '../models/enrichment-response';
 })
 export class EnrichmentApiService {
   private baseUrl = 'http://localhost:8080';
-  private enrichmentUrl = `${this.baseUrl}/api/enrichment`;
+  private enrichmentUrl = `${this.baseUrl}/api/enrich`;
 
   httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
