@@ -39,7 +39,7 @@ export class GameService {
     this._resetMarker.next();
     this.resetSelection();
     const currentDataVariable = 'POPDENS_CY';
-    const currentSourceCountry = 'US';
+    const currentSourceCountry = 'WORLD';
     const currentUserId = 123;
     const isGuessHigh = true;
     const enrichmentRequest: EnrichmentRequest = {

@@ -20,7 +20,6 @@ import com.demographiq.persistence.converter.CountryNameConverter;
 import com.demographiq.persistence.converter.DataVariableNameConverter;
 import com.demographiq.persistence.converter.ExtremeRecordConverter;
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -48,81 +47,6 @@ public class DataVariableMongoDAO {
         this.database = mongoClient.getDatabase("enrichment_data");
     }
 
-
-
-    public static void main(String[] args) {
-        String uri = "mongodb+srv://user:pass@demographiq.cbhbhvx.mongodb.net/?retryWrites=true&w=majority&appName=Demographiq";
-       try (MongoClient mongoClient = MongoClients.create(uri)) {
-            // Select the database and collection
-            MongoDatabase database = mongoClient.getDatabase("enrichment_data");
-            MongoCollection<Document> collection = database.getCollection("record_highs");
-
-            // Find the current record
-            Document currentRecord = collection.find(
-                Filters.and(
-                    Filters.eq("source_country", "US"),
-                    Filters.eq("metric", "POPDENS_CY")
-                )
-            ).first();
-
-            if (currentRecord != null) {
-                Document previousRecord = new Document()
-                    .append("value", currentRecord.get("value")) 
-                    .append("record_date", currentRecord.getDate("record_date"))
-                    .append("userId", currentRecord.getInteger("userId"));
-
-                // Create update operations
-                Bson updates = Updates.combine(
-                    // Set new record values
-                    Updates.set("value", 30000),
-                    Updates.set("userId", 30),
-                    Updates.set("record_date", new Date()),
-                    Updates.set("last_updated", new Date()),
-
-                    // Add current record to beginning of previous_records array
-                    Updates.push("previous_records", previousRecord)
-                );
-
-                // Update the document
-                UpdateResult result = collection.updateOne(
-                    Filters.and(
-                        Filters.eq("source_country", "US"),
-                        Filters.eq("metric", "POPDENS_CY")
-                    ),
-                    updates
-                );
-
-                if (result.getModifiedCount() > 0) {
-                    logger.info("Record updated successfully!");
-                } else {
-                    logger.info("No documents were updated");
-                }
-            } else {
-                logger.info("No record found for US population density");
-                Document newRecord = new Document()
-                    .append("source_country", "US")
-                    .append("country_name", "United States")
-                    .append("metric", "POPDENS_CY")
-                    .append("metric_name", "Population Density")
-                    .append("value", 40000)
-                    .append("userId", 30)
-                    .append("record_date", new Date())
-                    .append("previous_records", new java.util.ArrayList<>())
-                    .append("location", new Document()
-                        .append("type", "Point")
-                        .append("coordinates", java.util.Arrays.asList(-122.4194, 37.7749)))
-                    .append("last_updated", new Date());
-
-                collection.insertOne(newRecord);
-                logger.info("New record inserted!");
-            }
-        } catch (Exception e) {
-            logger.error("Error updating record: " + e.getMessage());
-        }
-    }
-
-
-
     /**
      * Retrieves the extreme value (highest or lowest) for a specific country and metric
      *
@@ -143,32 +67,30 @@ public class DataVariableMongoDAO {
         return Optional.empty();
     }
 
+    //This will only be called if the user puts the marker on the country they are suppose to play in
     public boolean updateIfMoreExtreme(EnrichmentResponse response, EnrichmentRequest request, boolean isHigh) {
         String variableId = response.getVariableId();
-        String sourceCountry = response.getSourceCountry();
+        String gamemodeCountry = request.getSourceCountry();
         double newValue = response.getValue();
         int userId = request.getUserId();
         boolean anyRecordUpdated = false;
         
-        // Get country and global records
-        Document countryRecordDoc = fetchMongoDocument(sourceCountry, variableId, isHigh);
-        Document globalRecordDoc = fetchMongoDocument("WORLD", variableId, isHigh);
+        // Get country record, this may be WORLD if that is the gamemode that is being played
+        Document countryRecordDoc = fetchMongoDocument(gamemodeCountry, variableId, isHigh);
         
         // Convert documents to ExtremeRecord objects
         ExtremeRecord countryExtremeRecord = recordConverter.convertDocumentToExtremeRecord(countryRecordDoc, isHigh);
-        ExtremeRecord globalExtremeRecord = recordConverter.convertDocumentToExtremeRecord(globalRecordDoc, isHigh);
         
         // Set up coordinates from the request
-        double[] coordinates = new double[] {request.getLongitude(), request.getLatitude()};
+        double[] coordinates = new double[] {request.getLatitude(), request.getLongitude()};
         
         // Check if country record should be updated
         if (shouldUpdateRecord(response, countryExtremeRecord, isHigh)) {
-            logger.info("Updating country record for {}, variable: {}", sourceCountry, variableId);
-            
+            logger.info("Updating country record for {}, variable: {}", gamemodeCountry, variableId);
             // Use your existing updateRecord method
             boolean updated = updateRecord(
-                sourceCountry,
-                countryConverter.getCountryName(sourceCountry),
+                gamemodeCountry,
+                countryConverter.getCountryName(gamemodeCountry),
                 variableId,
                 dataVariableConverter.getVariableName(variableId),
                 newValue,
@@ -179,29 +101,7 @@ public class DataVariableMongoDAO {
             
             if (updated) {
                 anyRecordUpdated = true;
-                logger.info("Successfully updated country record for: {}", sourceCountry);
-            }
-        }
-        
-        // Check if global record should be updated
-        if (shouldUpdateRecord(response, globalExtremeRecord, isHigh)) {
-            logger.info("Updating global record for variable: {}", variableId);
-            
-            // Use your existing updateRecord method for global record
-            boolean updated = updateRecord(
-                "WORLD",
-                "Global", 
-                variableId,
-                dataVariableConverter.getVariableName(variableId),
-                newValue,
-                userId,
-                isHigh,
-                coordinates
-            );
-            
-            if (updated) {
-                anyRecordUpdated = true;
-                logger.info("Successfully updated global record");
+                logger.info("Successfully updated country record for: {}", gamemodeCountry);
             }
         }
         
@@ -289,6 +189,12 @@ public class DataVariableMongoDAO {
                 updates.add(Updates.set("record_date", currentTime));
                 updates.add(Updates.set("last_updated", currentTime));
                 updates.add(Updates.push("previous_records", previousRecord));
+                if (coordinates != null && coordinates.length == 2) {
+                    Document locationDoc = new Document()
+                        .append("type", "Point")
+                        .append("coordinates", Arrays.asList(coordinates[0], coordinates[1]));
+                    updates.add(Updates.set("location", locationDoc));
+                }
                 
                 // Perform the update
                 UpdateResult result = collection.updateOne(
@@ -325,6 +231,7 @@ public class DataVariableMongoDAO {
                 
                 if (locationDoc != null) {
                     newRecord.append("location", locationDoc);
+                    logger.info(locationDoc.toString());
                 }
                 
                 collection.insertOne(newRecord);

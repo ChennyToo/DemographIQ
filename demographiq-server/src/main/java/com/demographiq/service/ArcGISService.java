@@ -57,7 +57,8 @@ public class ArcGISService {
         
         try {
             EnrichmentResponse response = callArcGisApi(latitude, longitude, dataVariable);
-            Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(response.getSourceCountry(), dataVariable, isHigh);
+            //We send in the request sourceCountry aka the gamemodeCountry, this ensures that we are grabbing from "WORLD" is we are playin on global game mode
+            Optional<ExtremeRecord> record = dataVariableMongoDAO.getExtremeValue(request.getSourceCountry(), dataVariable, isHigh);
             //Current record will be an existing record from MongoDB or we make an empty ExrtremeRecord instance to signify that there is no record yet stored in MongoDB
             response.setCurrentRecord(record.orElse(new ExtremeRecord()));
             if (isCorrectCountry(response, request)) {
@@ -92,6 +93,7 @@ public class ArcGISService {
             }
             
             String responseStr = response.toString();
+            logger.info("Response from ArcGIS API: " + responseStr);
             
             // Check if the response contains an error
             if (responseStr.contains("error")) {
