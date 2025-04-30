@@ -1,9 +1,12 @@
 <div class="status-container">
     <div class="status-item">
-      Round: {{ currentRound$ | async }} / {{ totalRounds$ | async }}
+      Mode: {{ gameMode$ | async }}
     </div>
     <div class="status-item">
-      Mode: {{ gameMode$ | async }}
+      Metric: {{ metric$ | async }}
+    </div>
+    <div class="status-item">
+      Round: {{ currentRound$ | async }} / {{ totalRounds$ | async }}
     </div>
     <div class="status-item">
       Score: {{ score$ | async }}

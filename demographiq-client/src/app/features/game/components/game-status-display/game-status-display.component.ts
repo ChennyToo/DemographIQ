@@ -14,6 +14,7 @@ export class GameStatusDisplayComponent {
   totalRounds$: Observable<number>;
   gameMode$: Observable<string>;
   score$: Observable<number>;
+  metric$: Observable<string>;
 
   constructor(private gameService: GameService) {
     // Assign observables in the constructor
@@ -21,5 +22,6 @@ export class GameStatusDisplayComponent {
     this.totalRounds$ = this.gameService.totalRounds$;
     this.gameMode$ = this.gameService.gameMode$;
     this.score$ = this.gameService.score$;
+    this.metric$ = this.gameService.metric$;
   }
 }

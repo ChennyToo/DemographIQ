@@ -19,6 +19,7 @@ export class GameService {
   private readonly _currentRound = new BehaviorSubject<number>(1);
   private readonly _totalRounds = new BehaviorSubject<number>(5);
   private readonly _gameMode = new BehaviorSubject<string>("WORLD");
+  private readonly _metric = new BehaviorSubject<string>("POPDENS_CY");
 
   readonly score$: Observable<number> = this._score.asObservable();
   readonly selectedLocation$: Observable<Coordinates | null> = this._selectedLocation.asObservable();
@@ -27,12 +28,15 @@ export class GameService {
   readonly currentRound$: Observable<number> = this._currentRound.asObservable();
   readonly totalRounds$: Observable<number> = this._totalRounds.asObservable();
   readonly gameMode$: Observable<string> = this._gameMode.asObservable();
+  readonly metric$: Observable<string> = this._metric.asObservable();
+
 
   constructor(private enrichmentApiService: EnrichmentApiService) { }
 
 
-  startGame(gameMode: string = "WORLD", totalRounds: number = 5): void {
+  startGame(gameMode: string = "WORLD", totalRounds: number = 5) {
     console.log(`GameService: Starting new game. Mode: ${gameMode}, Rounds: ${totalRounds}`);
+    this._metric.next("POPDENS_CY");
     this._gameMode.next(gameMode);
     this._totalRounds.next(totalRounds);
     this._currentRound.next(1);
@@ -71,7 +75,6 @@ export class GameService {
     console.log('GameService: Guess made for location:', coordinates);
     this._resetMarker.next();
     this.resetSelection();
-    const currentDataVariable = 'POPDENS_CY';
     const currentSourceCountry = 'WORLD';
     const currentUserId = 123;
     const isGuessHigh = true;
@@ -80,7 +83,7 @@ export class GameService {
       longitude: coordinates.longitude,
       sourceCountry: currentSourceCountry,
       userId: currentUserId,
-      dataVariable: currentDataVariable,
+      dataVariable: this._metric.getValue(),
       isHigh: isGuessHigh
     };
     this.enrichmentApiService.enrichLocation(enrichmentRequest).subscribe({
