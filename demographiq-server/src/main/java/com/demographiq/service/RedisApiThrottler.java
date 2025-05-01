@@ -9,8 +9,8 @@ import redis.clients.jedis.JedisPooled;
 public class RedisApiThrottler {
     private final JedisPooled jedis;
     private final String serverGlobalCallsKey = "globalCalls";
-    private final int MAX_USER_CALLS_MINUTE = 3;
-    private final int MAX_SERVER_CALLS_MINUTE = 5;
+    private final int MAX_USER_CALLS_MINUTE = 10;
+    private final int MAX_SERVER_CALLS_MINUTE = 10;
 
     @Autowired //Dependency inject jedisPooled from RedisConfig.java
     public RedisApiThrottler(JedisPooled jedisPooled) {

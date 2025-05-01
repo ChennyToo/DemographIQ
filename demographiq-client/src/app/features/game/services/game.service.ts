@@ -20,6 +20,8 @@ export class GameService {
   private readonly _totalRounds = new BehaviorSubject<number>(5);
   private readonly _gameMode = new BehaviorSubject<string>("WORLD");
   private readonly _metric = new BehaviorSubject<string>("POPDENS_CY");
+  private readonly _isHigh = new BehaviorSubject<boolean>(false);
+
 
   readonly score$: Observable<number> = this._score.asObservable();
   readonly selectedLocation$: Observable<Coordinates | null> = this._selectedLocation.asObservable();
@@ -29,6 +31,7 @@ export class GameService {
   readonly totalRounds$: Observable<number> = this._totalRounds.asObservable();
   readonly gameMode$: Observable<string> = this._gameMode.asObservable();
   readonly metric$: Observable<string> = this._metric.asObservable();
+  readonly isHigh$: Observable<boolean> = this._isHigh.asObservable();
 
 
   constructor(private enrichmentApiService: EnrichmentApiService) { }
@@ -41,12 +44,14 @@ export class GameService {
     this._totalRounds.next(totalRounds);
     this._currentRound.next(1);
     this._score.next(0);
+    this.randomizeIsHigh();
     this.resetSelection();
   }
 
   private advanceRound() {
     const currentRound = this._currentRound.getValue();
     const totalRounds = this._totalRounds.getValue();
+    this.randomizeIsHigh();
 
     if (currentRound < totalRounds) {
       this._currentRound.next(currentRound + 1);
@@ -77,14 +82,13 @@ export class GameService {
     this.resetSelection();
     const currentSourceCountry = 'WORLD';
     const currentUserId = 123;
-    const isGuessHigh = true;
     const enrichmentRequest: EnrichmentRequest = {
       latitude: coordinates.latitude,
       longitude: coordinates.longitude,
       sourceCountry: currentSourceCountry,
       userId: currentUserId,
       dataVariable: this._metric.getValue(),
-      isHigh: isGuessHigh
+      isHigh: this._isHigh.getValue(),
     };
     this.enrichmentApiService.enrichLocation(enrichmentRequest).subscribe({
       next: response => {
@@ -102,6 +106,10 @@ export class GameService {
   private resetSelection() {
     this._selectedLocation.next(null);
     this._isLocationSelected.next(false);
+  }
+
+  private randomizeIsHigh() {
+    this._isHigh.next(Math.random() < 0.5);
   }
 
 

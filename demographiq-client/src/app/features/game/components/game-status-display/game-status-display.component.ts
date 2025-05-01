@@ -15,6 +15,7 @@ export class GameStatusDisplayComponent {
   gameMode$: Observable<string>;
   score$: Observable<number>;
   metric$: Observable<string>;
+  isHigh$: Observable<boolean>;
 
   constructor(private gameService: GameService) {
     // Assign observables in the constructor
@@ -23,5 +24,6 @@ export class GameStatusDisplayComponent {
     this.gameMode$ = this.gameService.gameMode$;
     this.score$ = this.gameService.score$;
     this.metric$ = this.gameService.metric$;
+    this.isHigh$ = this.gameService.isHigh$;
   }
 }

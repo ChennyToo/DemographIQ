@@ -3,7 +3,7 @@
       Mode: {{ gameMode$ | async }}
     </div>
     <div class="status-item">
-      Metric: {{ metric$ | async }}
+      Metric: {{ (isHigh$ | async) ? 'Highest' : 'Lowest' }} {{ metric$ | async }}
     </div>
     <div class="status-item">
       Round: {{ currentRound$ | async }} / {{ totalRounds$ | async }}
