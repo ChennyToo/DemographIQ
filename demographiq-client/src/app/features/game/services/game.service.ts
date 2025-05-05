@@ -18,7 +18,7 @@ export class GameService {
   private readonly _resetMarker = new Subject<void>();
   private readonly _currentRound = new BehaviorSubject<number>(1);
   private readonly _totalRounds = new BehaviorSubject<number>(5);
-  private readonly _gameMode = new BehaviorSubject<string>("WORLD");
+  private readonly _gameMode = new BehaviorSubject<string>("WORLD"); // 2 Character ISO identifier or "WORLD"
   private readonly _metric = new BehaviorSubject<string>("POPDENS_CY");
   private readonly _isHigh = new BehaviorSubject<boolean>(false);
 
