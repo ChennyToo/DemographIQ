@@ -1,4 +1,4 @@
-<div class="mode-card">
+<div class="mode-card" [style.background-image]="backgroundImageUrl">
     <h3 class="mode-name">{{ countryName || 'Unnamed Mode' }}</h3>
     <button class="select-button" (click)="selectMode()">
       Play {{ countryName }}
