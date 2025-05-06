@@ -1,0 +1,21 @@
+.mode-select-container {
+    padding: 1rem;
+    width: 80%;
+    margin: 0 auto;
+  }
+  
+  .mode-select-container h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .modes-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5rem;
+  }
+
+    .mode-card {
+        width: 40%;
+    }

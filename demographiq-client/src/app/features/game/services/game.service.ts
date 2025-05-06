@@ -37,11 +37,11 @@ export class GameService {
   constructor(private enrichmentApiService: EnrichmentApiService) { }
 
 
-  startGame(gameMode: string = "WORLD", totalRounds: number = 5) {
-    console.log(`GameService: Starting new game. Mode: ${gameMode}, Rounds: ${totalRounds}`);
+  startGame(gameMode: string) {
+    console.log(`GameService: Starting new game. Mode: ${gameMode}`);
     this._metric.next("POPDENS_CY");
     this._gameMode.next(gameMode);
-    this._totalRounds.next(totalRounds);
+    this._totalRounds.next(5);
     this._currentRound.next(1);
     this._score.next(0);
     this.randomizeIsHigh();
@@ -58,7 +58,7 @@ export class GameService {
       console.log(`GameService: Advancing to round ${currentRound + 1}`);
     } else {
       console.log(`GameService: Game over. Resetting.`);
-      this.startGame(this._gameMode.getValue(), this._totalRounds.getValue());
+      this.startGame(this._gameMode.getValue());
     }
   }
 
@@ -80,7 +80,7 @@ export class GameService {
     console.log('GameService: Guess made for location:', coordinates);
     this._resetMarker.next();
     this.resetSelection();
-    const currentSourceCountry = 'WORLD';
+    const currentSourceCountry = this._gameMode.getValue();
     const currentUserId = 123;
     const enrichmentRequest: EnrichmentRequest = {
       latitude: coordinates.latitude,

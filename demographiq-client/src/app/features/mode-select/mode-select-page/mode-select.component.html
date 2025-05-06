@@ -1,0 +1,11 @@
+<div class="mode-select-container">
+    <h2>Select a Game Mode</h2>
+    <div class="modes-grid">
+      <app-game-mode-card class="mode-card"
+        *ngFor="let mode of gameModes"
+        [countryCode]="mode.code"
+        [countryName]="mode.name"
+        (modeSelected)="onModeSelected($event)">
+      </app-game-mode-card>
+    </div>
+  </div>
